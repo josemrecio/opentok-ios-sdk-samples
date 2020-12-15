@@ -220,8 +220,13 @@ connectionDestroyed:(OTConnection *)connection
     NSLog(@"subscriberDidConnectToStream (%@)",
           subscriber.stream.connection.connectionId);
     assert(_subscriber == subscriber);
-    [_subscriber.view setFrame:CGRectMake(0, 0, widgetWidth,
-                                          widgetHeight)];
+    const double subsStreamW = subscriber.stream.videoDimensions.width;
+    const double subsStreamH = subscriber.stream.videoDimensions.height;
+    const double subsStreamFormFactor = subsStreamH / subsStreamW;
+    const int subsViewW = widgetWidth;
+    const int subsViewH = widgetWidth * subsStreamFormFactor;
+    [_subscriber.view setFrame:CGRectMake(0, 0, subsViewW,
+                                          subsViewH)];
     [self.view addSubview:_subscriber.view];
 }
 
@@ -235,7 +240,20 @@ connectionDestroyed:(OTConnection *)connection
 
 - (void)subscriberVideoDataReceived:(OTSubscriber*)subscriber
 {
-    //NSLog(@"subscriberVideoDataReceived");
+    // NSLog(@"subscriberVideoDataReceived");
+    const double subsStreamW = subscriber.stream.videoDimensions.width;
+    const double subsStreamH = subscriber.stream.videoDimensions.height;
+    const double subsStreamFormFactor = subsStreamH / subsStreamW;
+    const double currentW = _subscriber.view.frame.size.width;
+    const double currentH = _subscriber.view.frame.size.height;
+    const double currentFormFactor = currentH / currentW;
+    if (fabs(currentFormFactor - subsStreamFormFactor) > 0.001) {
+        const int subsViewW = widgetWidth;
+        const int subsViewH = widgetWidth * subsStreamFormFactor;
+        [_subscriber.view setFrame:CGRectMake(0, 0, subsViewW,
+                                              subsViewH)];
+
+    }
 }
 
 # pragma mark - OTPublisher delegate callbacks
